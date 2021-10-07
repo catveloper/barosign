@@ -10,11 +10,11 @@ class CustomChoiceMeta(ChoicesMeta):
         return [(instance.name, instance.value[0]) for instance in cls]
 
 
-class Choices(Enum, metaclass=CustomChoiceMeta):
+class CustomChoices(Enum, metaclass=CustomChoiceMeta):
     pass
 
 
-class PriceType(Choices):
+class ChargeType(CustomChoices):
     WEIGHT = ('무게',)
     VOLUME = ('부피',)
 

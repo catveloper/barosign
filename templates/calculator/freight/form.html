@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+{% extends 'common/base.html' %}
+{% load bootstrap4 %}
+{% block page_name %}화물 등록{% endblock %}
+{% block content %}
+    <form action="{% url 'calculator:freight_fv' %}" method="post">
+        {% csrf_token %}
+            {% bootstrap_form form %}
+        <div class="btn-group-lg mt-3 form-row float-right">
+            <button type="submit" class="btn btn-danger rounded-pill mr-2">등록</button>
+            <button type="button" class="btn btn-primary rounded-pill">취소</button>
+        </div>
+    </form>
+{% endblock %}
