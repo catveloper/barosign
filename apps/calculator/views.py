@@ -1,11 +1,16 @@
-from django.shortcuts import render
-
 # Create your views here.
-from django.urls import reverse, reverse_lazy
+from django.urls import reverse_lazy
 from django.views.generic import FormView, ListView
 
 from apps.calculator.forms import FreightForm
 from apps.calculator.models import Freight
+
+
+class FreightLV(ListView):
+    template_name = 'calculator/freight/list.html'
+    model = Freight
+    paginate_by = 10
+    ordering = 'create_dt'
 
 
 class FreightFV(FormView):
@@ -18,6 +23,4 @@ class FreightFV(FormView):
         return super().form_valid(form)
 
 
-class FreightLV(ListView):
-    template_name = 'calculator/freight/list.html'
-    model = Freight
+

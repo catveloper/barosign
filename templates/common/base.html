@@ -35,5 +35,16 @@
 
 {% block footer %}
 {% endblock %}
+
+<script>
+    $(function(){
+            $('.page_link').click(function () {
+                let url = $(this).data('url')
+                location.href = url
+            })
+        })
+</script>
+{% block extra_script %}
+{% endblock %}
 </body>
 </html>

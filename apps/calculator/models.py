@@ -1,5 +1,3 @@
-from django.db import models
-
 # Create your models here.
 from django.db import models
 
@@ -15,6 +13,9 @@ class Freight(models.Model):
     charge_per_volume = models.IntegerField('부피당 금액')
     create_dt = models.DateTimeField('작성일', auto_now_add=True)
     update_dt = models.DateTimeField('수정일', auto_now=True)
+
+    def get_priority_unit(self):
+        return ChargeType[self.priority].unit
 
 
 class ChargeCalculator(models.Model):

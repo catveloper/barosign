@@ -1,9 +1,9 @@
-from enum import Enum
+from enum import Enum, EnumMeta
 
 from django.db.models.enums import ChoicesMeta
 
 
-class CustomChoiceMeta(ChoicesMeta):
+class CustomChoiceMeta(EnumMeta):
 
     @property
     def choices(cls):
@@ -15,8 +15,10 @@ class CustomChoices(Enum, metaclass=CustomChoiceMeta):
 
 
 class ChargeType(CustomChoices):
-    WEIGHT = ('무게',)
-    VOLUME = ('부피',)
+    WEIGHT = ('무게', 'kg')
+    VOLUME = ('부피', 'm^3')
 
-    def __init__(self, kr_name):
+    def __init__(self, kr_name, unit):
         self.kr_name = kr_name
+        self.unit = unit
+
