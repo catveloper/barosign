@@ -1,10 +1,9 @@
 from django.urls import path
 
-from apps.calculator.views import *
+from apps.calculator.views import FreightFV
 
 app_name = 'calculator'
 
 urlpatterns = [
-    path('freight/', FreightFV.as_view(), name='freight_fv'),
-    path('freights/', FreightLV.as_view(), name='freight_lv'),
+    path('freight/', FreightFV.as_view(), name='freight'),
 ]

@@ -18,7 +18,10 @@ from django.urls import path, include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('calculator/', include('apps.calculator.urls')),
 ]
 
+custom_urlpatterns = [
+    path('calculator/', include('apps.calculator.urls'))
+]
 
+urlpatterns += custom_urlpatterns
