@@ -2,6 +2,7 @@
 from django.urls import reverse_lazy
 from django.views.generic import FormView, ListView
 
+from apps.calculator.enums import ChargeType
 from apps.calculator.forms import FreightForm
 from apps.calculator.models import Freight
 
@@ -18,9 +19,11 @@ class FreightFV(FormView):
     success_url = reverse_lazy('calculator:freight_lv')
     form_class = FreightForm
 
+    def get_context_data(self, **kwargs):
+        context_data = super().get_context_data(**kwargs)
+        context_data['chargeType'] = ChargeType.VOLUME
+        return context_data
+
     def form_valid(self, form):
         form.save()
         return super().form_valid(form)
-
-
-

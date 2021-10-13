@@ -5,13 +5,17 @@ from apps.calculator.models import Freight
 
 
 class FreightForm(forms.ModelForm):
+    rate_conversion_point = forms.IntegerField(
+        label='요금기준 전환점',
+        widget=forms.TextInput({'placeholder': '무게 1kg당 금액을 입력해주세요'})
+    )
     charge_per_weight = forms.IntegerField(
         label='무게당 금액',
-        widget=forms.NumberInput({'placeholder': '무게 1kg당 금액을 입력해주세요'})
+        widget=forms.TextInput({'placeholder': '무게 1kg당 금액을 입력해주세요'})
     )
     charge_per_volume = forms.IntegerField(
         label='부피당 금액',
-        widget=forms.NumberInput({'placeholder': '부피 1m3당 금액을 입력해주세요'})
+        widget=forms.TextInput({'placeholder': '부피 1m3당 금액을 입력해주세요'})
     )
 
     class Meta:

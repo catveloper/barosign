@@ -5,11 +5,35 @@
 {% block content %}
     <form action="{% url 'calculator:freight_fv' %}" method="post">
         {% csrf_token %}
-            {% bootstrap_form form %}
+            {% bootstrap_field form.name %}
+            {% bootstrap_field form.priority %}
+            {% bootstrap_field form.rate_conversion_point addon_after="<span id='unit'>미선택</span>" %}
+            {% bootstrap_field form.charge_per_weight addon_after="원/kg"%}
+            {% bootstrap_field form.charge_per_volume addon_after="원/m<sup>3</sup>"%}
         <div class="btn-group-lg mt-3 form-row float-right">
             <button type="submit" class="btn btn-danger rounded-pill mr-2">등록</button>
             <button type="button" class="btn btn-primary rounded-pill mr-2 page_link" data-url="{% url 'calculator:freight_lv' %}">취소</button>
         </div>
     </form>
-    {{ list_params }}
+    {{ chargeType }}
+{% endblock %}
+
+{% block extra_script %}
+<script>
+    $(function () {
+        $('#id_rate_conversion_point, #id_charge_per_weight, #id_charge_per_volume ').inputmask("numeric", {
+            autoGroup: true,
+            groupSeparator: ",",
+            digits: 0,
+            allowMinus: false,
+            repeat: 12,
+            rightAlign: false
+        }).next('div').find('span').css('background-color','#e9ecef')
+
+        $('#priority').change(function () {
+            $('#unit').text()
+        })
+
+    })
+</script>
 {% endblock %}
