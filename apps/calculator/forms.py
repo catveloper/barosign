@@ -7,7 +7,7 @@ from apps.calculator.models import Freight
 class FreightForm(forms.ModelForm):
     rate_conversion_point = forms.IntegerField(
         label='요금기준 전환점',
-        widget=forms.TextInput({'placeholder': '무게 1kg당 금액을 입력해주세요'})
+        widget=forms.TextInput()
     )
     charge_per_weight = forms.IntegerField(
         label='무게당 금액',

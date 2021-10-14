@@ -7,6 +7,21 @@ from apps.calculator.forms import FreightForm
 from apps.calculator.models import Freight
 
 
+class CalculatorFV(FormView):
+    template_name = 'calculator/index.html'
+    success_url = reverse_lazy('calculator:freight_lv')
+    form_class = FreightForm
+
+    def get_context_data(self, **kwargs):
+        context_data = super().get_context_data(**kwargs)
+        context_data['chargeType'] = ChargeType.to_dict()
+        return context_data
+
+    def form_valid(self, form):
+        form.save()
+        return super().form_valid(form)
+
+
 class FreightLV(ListView):
     template_name = 'calculator/freight/list.html'
     model = Freight
@@ -21,7 +36,7 @@ class FreightFV(FormView):
 
     def get_context_data(self, **kwargs):
         context_data = super().get_context_data(**kwargs)
-        context_data['chargeType'] = ChargeType.VOLUME
+        context_data['chargeType'] = ChargeType.to_dict()
         return context_data
 
     def form_valid(self, form):
