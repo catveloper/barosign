@@ -1,7 +1,6 @@
 from django import forms
 
-from apps.calculator.enums import ChargeType
-from apps.calculator.models import Freight
+from apps.calculator.models import Freight, ChargeCalculator
 
 
 class FreightForm(forms.ModelForm):
@@ -27,3 +26,10 @@ class FreightForm(forms.ModelForm):
             "charge_per_weight",
             "charge_per_volume",
         ]
+
+
+class ChargeCalculatorForm(forms.ModelForm):
+
+    class Meta:
+        model = ChargeCalculator
+        fields = "__all__"

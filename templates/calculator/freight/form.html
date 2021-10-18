@@ -3,7 +3,11 @@
 {% load bootstrap4 %}
 {% block page_name %}화물 등록{% endblock %}
 {% block content %}
-    <form action="{% url 'calculator:freight_fv' %}" method="post">
+    {% if object %}
+        <form action="{% url 'calculator:freight_uv' object.id %}" method="post">
+    {% else %}
+        <form action="{% url 'calculator:freight_cv' %}" method="post">
+    {% endif %}
         {% csrf_token %}
         {% bootstrap_field form.name %}
         {% bootstrap_field form.priority %}

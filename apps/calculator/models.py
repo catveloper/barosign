@@ -22,6 +22,8 @@ class Freight(models.Model):
 class ChargeCalculator(models.Model):
 
     freight = models.ForeignKey(Freight, on_delete=models.CASCADE)
-    start_point = models.CharField('출발점')
-    arrival_point = models.CharField('출발점')
+    load_weight = models.IntegerField('적재중량')
+    load_volume = models.IntegerField('적재부피')
+    start_point = models.CharField('출발지', max_length=128)
+    arrival_point = models.CharField('도착지', max_length=128)
     distance = models.IntegerField('거리')

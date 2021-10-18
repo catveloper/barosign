@@ -13,7 +13,7 @@
                             전체 {{ paginator.count|intcomma }}개, &nbsp{{page_obj.number}}/{{paginator.num_pages}} 페이지
                         </span>
                         <div class="col text-right">
-                        <button type="button" class="btn btn-danger page_link" data-url="{% url 'calculator:freight_fv'%}">+</button>
+                        <button type="button" class="btn btn-danger page_link" data-url="{% url 'calculator:freight_cv'%}">+</button>
                         </div>
                     </div>
                 </div>
@@ -37,10 +37,10 @@
                     </thead>
                     <tbody>
                     {% for object in object_list %}
-                        <tr class="page_link" data-url="{% url 'calculator:freight_fv'%}">
+                        <tr class="page_link" data-url="{% url 'calculator:freight_uv' object.id%}">
                             <td><p class="text-nowrap mb-0">{{ object.name }}</p></td>
                             <td>{{ object.get_priority_display }}</td>
-                            <td>{{ object.rate_conversion_point|intcomma }} {{ object.get_priority_unit_html }}</td>
+                            <td>{{ object.rate_conversion_point|intcomma }} {{ object.get_priority_unit_html| safe }}</td>
                             <td>{{ object.charge_per_weight|intcomma }} 원</td>
                             <td>{{ object.charge_per_volume|intcomma }} 원</td>
                         </tr>
