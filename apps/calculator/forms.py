@@ -29,7 +29,31 @@ class FreightForm(forms.ModelForm):
 
 
 class ChargeCalculatorForm(forms.ModelForm):
-
+    freight = forms.ModelChoiceField(
+        label=ChargeCalculator.freight.field.verbose_name,
+        queryset=Freight.objects.filter(is_use=True),
+        to_field_name='name'
+    )
+    load_weight = forms.IntegerField(
+        label=ChargeCalculator.load_volume.field.verbose_name,
+        widget=forms.TextInput()
+    )
+    load_volume = forms.IntegerField(
+        label=ChargeCalculator.load_volume.field.verbose_name,
+        widget=forms.TextInput()
+    )
+    distance = forms.IntegerField(
+        label=ChargeCalculator.distance.field.verbose_name,
+        widget=forms.TextInput({'disabled':True}),
+        help_text='T_MAP API 연동을 통해서 자동 계산되는 항목입니다'
+    )
     class Meta:
         model = ChargeCalculator
-        fields = "__all__"
+        fields = [
+            "freight",
+            "load_weight",
+            "load_volume",
+            "start_point",
+            "arrival_point",
+            "distance",
+        ]

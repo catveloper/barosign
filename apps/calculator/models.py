@@ -21,7 +21,7 @@ class Freight(models.Model):
 
 class ChargeCalculator(models.Model):
 
-    freight = models.ForeignKey(Freight, on_delete=models.CASCADE)
+    freight = models.ForeignKey(Freight, verbose_name='화물', on_delete=models.CASCADE)
     load_weight = models.IntegerField('적재중량')
     load_volume = models.IntegerField('적재부피')
     start_point = models.CharField('출발지', max_length=128)
