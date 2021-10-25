@@ -9,7 +9,7 @@ class TransportSection(models.Model):
     start_ara = models.CharField('출발 지역', max_length=100)
     arrival_are = models.CharField('도착 지역', max_length=100)
     extra_distance = models.IntegerField('추가 거리', help_text='회기 시 추가로 산정될 거리')
-    use_yn = models.BooleanField('사용여부', default=True)
+    is_use = models.BooleanField('사용여부', default=True)
 
 
 class ChargeType(models.Model):
@@ -20,10 +20,11 @@ class ChargeType(models.Model):
 
 class ChargeCalculator(models.Model):
 
+    chargeType = models.ForeignKey(ChargeType, verbose_name='금액산정 방식', on_delete=models.CASCADE)
     freight_name = models.CharField('화물명', max_length=128)
     load_weight = models.IntegerField('적재중량')
-    chargeType = models.ForeignKey(ChargeType, verbose_name='금액산정 방식', on_delete=models.CASCADE)
     start_point = models.CharField('출발지', max_length=128)
     arrival_point = models.CharField('도착지', max_length=128)
     distance = models.IntegerField('거리')
     cost = models.IntegerField('운송비용')
+    create_dt = models.DateTimeField('계산일', auto_created=True)

@@ -39,7 +39,7 @@ class TruckType(CustomEnum):
     TRAILER = ('트레일러', 2500, 12000, 1600, 30000)
     LOW_BED_TRAILER = ('로베드', 2500, 5600, 800, 30000)
 
-    def __init__(self, kr_name, width,length, height, loadable_weight):
+    def __init__(self, kr_name, width, length, height, loadable_weight):
         self.kr_name = kr_name
         self.width = width
         self.length = length
