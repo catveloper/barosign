@@ -1,6 +1,8 @@
 from django import forms
+from django.forms import inlineformset_factory
 
-from apps.calculator.models import TransportSection, ChargeCalculator
+from apps.calculator.enums import TruckType
+from apps.calculator.models import TransportSection, ChargeCalculator, ChargeType
 
 
 class TransportSectionForm(forms.ModelForm):
@@ -16,8 +18,20 @@ class TransportSectionForm(forms.ModelForm):
             "start_ara",
             "arrival_are",
             "extra_distance",
-            "charge_types",
         ]
+
+
+class ChargeTypeForm(forms.ModelForm):
+
+    class Meta:
+        model = ChargeType
+        fields = [
+            "truck",
+            "per_km_cost",
+        ]
+
+
+ChargeTypeFormSet = inlineformset_factory(parent_model=TransportSection, model=ChargeType, form=ChargeTypeForm, extra=len(TruckType), can_delete_extra=False)
 
 
 class ChargeCalculatorForm(forms.ModelForm):

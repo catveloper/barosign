@@ -14,7 +14,7 @@ class TransportSection(models.Model):
 
 class ChargeType(models.Model):
     section = models.ForeignKey(TransportSection, verbose_name='화물', on_delete=models.CASCADE, related_name='charge_types')
-    truck = models.CharField('요금산정 우선순위', choices=TruckType.choices, max_length=20)
+    truck = models.CharField('화물차종', choices=TruckType.choices, max_length=20)
     per_km_cost = models.IntegerField('km당 요금')
 
 

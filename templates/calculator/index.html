@@ -15,21 +15,21 @@
 {% endblock %}
 
 {% block extra_script %}
-    <script	src="https://apis.openapi.sk.com/tmap/jsv2?version=1&appKey=l7xxe69bc783e3f542c7a43652ee9bd569e0"></script>
+    <script src="https://apis.openapi.sk.com/tmap/jsv2?version=1&appKey=l7xxe69bc783e3f542c7a43652ee9bd569e0"></script>
     <script>
         CHARGE_TYPE = {% autoescape off %}{{ chargeType }}{% endautoescape %}
-        $(function () {
-            var map = new Tmapv2.Map("map_div2",
-            {
-                center: new Tmapv2.LatLng(37.566481622437934,126.98502302169841),
-                width: "890px",
-                height: "400px",
-                zoom: 15
-            });
-            var marker = new Tmapv2.Marker({
-                position: new Tmapv2.LatLng(37.566481622437934,126.98502302169841),
-                map: map
-            });
-        })
+            $(function () {
+                var map = new Tmapv2.Map("map_div2",
+                    {
+                        center: new Tmapv2.LatLng(37.566481622437934, 126.98502302169841),
+                        width: "890px",
+                        height: "400px",
+                        zoom: 15
+                    });
+                var marker = new Tmapv2.Marker({
+                    position: new Tmapv2.LatLng(37.566481622437934, 126.98502302169841),
+                    map: map
+                });
+            })
     </script>
 {% endblock %}
