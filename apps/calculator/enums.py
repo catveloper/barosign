@@ -24,16 +24,7 @@ class CustomEnum(Enum, metaclass=CustomEnumMeta):
     pass
 
 
-class ChargeType(CustomEnum):
-    WEIGHT = ('무게', 'kg')
-    VOLUME = ('부피', 'm<sup>3</sup>')
-
-    def __init__(self, kr_name, unit_html):
-        self.kr_name = kr_name
-        self.unit_html = unit_html
-
-
-class LorryType(CustomEnum):
+class TruckType(CustomEnum):
     ONE_TONE = ('1톤', 1500, 2800, 800, 1000)
     ONE_HALF_TONE = ('1.4톤', 1550, 3100, 800, 1500)
     TWO_HALF_TONE = ('2.5톤', 1900, 4300, 1030, 25000)
