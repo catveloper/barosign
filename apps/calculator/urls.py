@@ -6,7 +6,7 @@ app_name = 'calculator'
 
 urlpatterns = [
     path('', CalculatorFV.as_view(), name='index'),
-    path('freights/add', FreightCV.as_view(), name='freight_cv'),
-    path('freights/<int:pk>', FreightUV.as_view(), name='freight_uv'),
-    path('freights/', FreightLV.as_view(), name='freight_lv'),
+    path('transport-section/add', TransportSectionCV.as_view(), name='transport_section_cv'),
+    path('transport-section/<int:pk>', TransportSectionUV.as_view(), name='transport_section_uv'),
+    path('transport-section/', TransportSectionLV.as_view(), name='transport_section_lv'),
 ]

@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+{% extends 'common/base.html' %}
+{% load bootstrap4 %}
+{% load mathfilters %}
+{% block title %}바로사인 - 화물 등록{% endblock %}
+{% block page_name %}화물 등록{% endblock %}
+{% block content %}
+    {% if object %}
+        <form action="{% url 'calculator:transport_section_uv' object.id %}" method="post">
+    {% else %}
+        <form action="{% url 'calculator:transport_section_cv' %}" method="post">
+    {% endif %}
+{% csrf_token %}
+
+<div class="card card-body">
+    <h2 class="card-title mb-lg-3">구간정보</h2>
+    {% bootstrap_field form.start_area %}
+    {% bootstrap_field form.arrival_area %}
+    {% bootstrap_field form.extra_distance addon_after="km"%}
+</div>
+<div class="card card-body mt-lg-5">
+    <h2>차량별 단가 (원/km)</h2>
+    {{ charge_types|length }}
+    {% for charge_type_form in charge_types %}
+        {% if forloop.counter0|mod:6 == 0 %}
+            <div class="card-group">
+        {% endif %}
+        <div class="card mt-3">
+            <div class="card-header">{% bootstrap_field charge_type_form.truck %}</div>
+            <div class="card-body">
+                <span>{% bootstrap_field charge_type_form.per_km_cost %}</span>
+            </div>
+        </div>
+        {% if forloop.last %}
+            {% with forloop.counter|mod:6|sub:6|mul:-1 as white_space %}
+                {% for x in ""|ljust:white_space %}
+                    <div class="card mt-3"></div>
+                {% endfor %}
+            {% endwith %}
+        {% endif %}
+        {% if forloop.counter0|mod:6 == 5 or forloop.last %}
+            </div>
+        {% endif %}
+    {% endfor %}
+</div>
+<div class="btn-group-lg mt-3 pb-5 form-row float-right">
+    <button type="submit" id="save_btn" class="btn btn-danger rounded-pill mr-2">등록</button>
+    <button type="button" class="btn btn-primary rounded-pill mr-2 page_link"
+            data-url="{% url 'calculator:transport_section_lv' %}">취소
+    </button>
+</div>
+</form>
+{% endblock %}
+
+{% block extra_script %}
+    <script>
+        $(function () {
+            $('#id_extra_distance').inputmask("numeric", {
+                autoGroup: true,
+                groupSeparator: ",",
+                digits: 0,
+                allowMinus: false,
+                repeat: 12,
+                rightAlign: false,
+                removeMaskOnSubmit: true
+            }).next('div').find('span').css('background-color', '#e9ecef')
+        })
+    </script>
+{% endblock %}
