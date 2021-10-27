@@ -133,3 +133,11 @@ STATICFILES_DIRS = [BASE_DIR / 'static']
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+DEV_INFO = {
+    'host': '192.168.1.1',
+    'port': '8280',
+    'id': 'barosgin_temp',
+    'pw': 'barosgin_temp'
+}
