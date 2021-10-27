@@ -15,6 +15,9 @@ class TransportSectionForm(forms.ModelForm):
             "arrival_area",
             "extra_distance",
         ]
+        initial = {
+            "extra_distance": 0
+        }
 
 
 class ChargeTypeForm(forms.ModelForm):
@@ -57,14 +60,11 @@ class ChargeCalculatorForm(forms.ModelForm):
         label='화물차',
         choices=TruckType.choices,
     )
-    load_weight = forms.IntegerField(
-        label=ChargeCalculator.load_weight.field.verbose_name,
-        widget=forms.TextInput()
-    )
     distance = forms.IntegerField(
         label=ChargeCalculator.distance.field.verbose_name,
-        widget=forms.TextInput({'disabled': True}),
-        help_text='T_MAP API 연동을 통해서 자동 계산되는 항목입니다'
+        help_text='T_MAP API 연동을 통해서 자동 계산되는 항목입니다',
+        disabled=True
+
     )
 
     class Meta:
