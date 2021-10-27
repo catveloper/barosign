@@ -1,5 +1,5 @@
 from django import forms
-from django.forms import inlineformset_factory
+from django.forms import inlineformset_factory, BaseInlineFormSet
 from extra_views import InlineFormSetFactory
 
 from apps.calculator.enums import TruckType
@@ -7,10 +7,6 @@ from apps.calculator.models import TransportSection, ChargeCalculator, ChargeTyp
 
 
 class TransportSectionForm(forms.ModelForm):
-    extra_distance = forms.IntegerField(
-        label=TransportSection.extra_distance.field.verbose_name,
-        widget=forms.TextInput()
-    )
 
     class Meta:
         model = TransportSection
@@ -22,9 +18,11 @@ class TransportSectionForm(forms.ModelForm):
 
 
 class ChargeTypeForm(forms.ModelForm):
+
     truck = forms.ChoiceField(
         label='',
-        choices=TruckType.choices
+        choices=TruckType.choices,
+        disabled=True
     )
     per_km_cost = forms.IntegerField(
         label='',
@@ -41,16 +39,19 @@ class ChargeTypeForm(forms.ModelForm):
 class ChargeTypeInline(InlineFormSetFactory):
     model = ChargeType
     form_class = ChargeTypeForm
+    prefix = 'chargeType'
     initial = [{'truck': truck.name} for truck in TruckType]
-    prefix = 'charge-type-form'
-    factory_kwargs = {'extra': len(TruckType), 'can_delete_extra': False}
+    factory_kwargs = {'min_num': len(TruckType), 'max_num': len(TruckType), 'can_delete_extra': False}
+
+
+ChargeTypeFormSet = inlineformset_factory(TransportSection, ChargeType, form=ChargeTypeForm, extra=len(TruckType), max_num=len(TruckType), can_delete_extra=False)
 
 
 class ChargeCalculatorForm(forms.ModelForm):
     transport_section = forms.ModelChoiceField(
         label=TransportSection._meta.verbose_name,
         queryset=TransportSection.objects.filter(is_use=True),
-        to_field_name='name'
+        empty_label="구간을 선택해주세요"
     )
     truck = forms.ChoiceField(
         label='화물차',

@@ -8,6 +8,7 @@ class TransportSection(models.Model):
 
     class Meta:
         verbose_name = '이동구간'
+        verbose_name_plural = '이동구간'
 
     start_area = models.CharField('출발 지역', max_length=100)
     arrival_area = models.CharField('도착 지역', max_length=100)
@@ -16,6 +17,16 @@ class TransportSection(models.Model):
     create_dt = models.DateTimeField('생성일', auto_now_add=True)
     update_dt = models.DateTimeField('수정일', auto_now=True)
 
+    def __str__(self):
+        return f'{self.start_area} -> {self.arrival_area}'
+
+    @property
+    def charge_average(self):
+
+        per_km_costs = [charge_type.per_km_cost for charge_type in self.charge_types.all()]
+        return int(sum(per_km_costs)/len(per_km_costs))
+
+
 class ChargeType(models.Model):
 
     class Meta:
@@ -23,7 +34,7 @@ class ChargeType(models.Model):
 
     section = models.ForeignKey(TransportSection, verbose_name='화물', on_delete=models.CASCADE, related_name='charge_types')
     truck = models.CharField('화물차종', choices=TruckType.choices, max_length=20)
-    per_km_cost = models.IntegerField('km당 요금')
+    per_km_cost = models.IntegerField('./km당 요금')
     create_dt = models.DateTimeField('생성일', auto_now_add=True)
     update_dt = models.DateTimeField('수정일', auto_now=True)
 

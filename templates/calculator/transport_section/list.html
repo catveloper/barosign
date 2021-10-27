@@ -21,32 +21,29 @@
                 <table class="table table-hover text-center ">
                     <colgroup>
                         <col class="col-3">
-                        <col class="col-2">
                         <col class="col-3">
-                        <col class="col-2">
-                        <col class="col-2">
+                        <col class="col-3">
+                        <col class="col-3">
                     </colgroup>
                     <thead>
                     <tr>
-                        <th>태스크 ID</th>
-                        <th>우선순위</th>
-                        <th>요금기준 전환점</th>
-                        <th>무게당 금액 (원/kg)</th>
-                        <th>부피당 금액 (원/m<sup>3</sup>)</th>
+                        <th>출발지역</th>
+                        <th>도착지역</th>
+                        <th>추가 거리(회기)</th>
+                        <th>km당 평균 금액</th>
                     </tr>
                     </thead>
                     <tbody>
                     {% for object in object_list %}
                         <tr class="page_link" data-url="{% url 'calculator:transport_section_uv' object.id%}">
-                            <td><p class="text-nowrap mb-0">{{ object.name }}</p></td>
-                            <td>{{ object.get_priority_display }}</td>
-                            <td>{{ object.rate_conversion_point|intcomma }} {{ object.get_priority_unit_html| safe }}</td>
-                            <td>{{ object.charge_per_weight|intcomma }} 원</td>
-                            <td>{{ object.charge_per_volume|intcomma }} 원</td>
+                            <td>{{ object.start_area }}</td>
+                            <td>{{ object.arrival_area }}</td>
+                            <td>{{ object.extra_distance }} km</td>
+                            <td>{{ object.charge_average }} 원</td>
                         </tr>
                     {% empty %}
                         <tr>
-                            <td colspan="5"><p class="lead">no data</p></td>
+                            <td colspan="4"><p class="lead mt-3">등록된 데이터가 없습니다</p></td>
                         </tr>
                     {% endfor %}
                     </tbody>

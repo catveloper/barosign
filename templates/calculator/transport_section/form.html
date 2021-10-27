@@ -20,7 +20,7 @@
 </div>
 <div class="card card-body mt-lg-5">
     <h2>차량별 단가 (원/km)</h2>
-    {{ charge_types|length }}
+    {{ charge_types.management_form }}
     {% for charge_type_form in charge_types %}
         {% if forloop.counter0|mod:6 == 0 %}
             <div class="card-group">
@@ -55,7 +55,7 @@
 {% block extra_script %}
     <script>
         $(function () {
-            $('#id_extra_distance').inputmask("numeric", {
+            $('input[type=number]').attr('type','text').inputmask("numeric", {
                 autoGroup: true,
                 groupSeparator: ",",
                 digits: 0,
