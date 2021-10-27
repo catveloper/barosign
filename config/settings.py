@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'extra_views',
     'mathfilters',
     'bootstrap4',
+    'django_feather',
     'apps.calculator.apps.CalculatorConfig'
 ]
 

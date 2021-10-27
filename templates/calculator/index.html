@@ -1,32 +1,37 @@
 <!DOCTYPE html>
 {% extends 'common/base.html' %}
-{% load bootstrap4 %}
+{% load bootstrap4 icon%}
 {% block page_name %}화물 등록{% endblock %}
 {% block content %}
     <form action="{% url 'calculator:index' %}" method="post">
         {% csrf_token %}
-        <div class="row">
-            <div class="col-6">{% bootstrap_field form.transport_section %}</div>
-            <div class="col-6">{% bootstrap_field form.truck %}</div>
-        </div>
-        <div class="row">
-            <div class="col-6">{% bootstrap_field form.freight_name %}</div>
-            <div class="col-6">{% bootstrap_field form.load_weight addon_after="kg" %}</div>
-        </div>
-
-        <div class="row">
-            <div class="col-6">
-                <div id="map_div"></div>
+        <div class ='card card-body mb-3'>
+            <h3 class="card-title">{% icon "grid" class='pb-2' height='100%'%} 화정보</h3>
+            <div class="row">
+                <div class="col-6">{% bootstrap_field form.transport_section %}</div>
+                <div class="col-6">{% bootstrap_field form.truck %}</div>
             </div>
-            <div class="col-6">
-                {% bootstrap_field form.start_point %}
-                {% bootstrap_field form.arrival_point %}
-                {% bootstrap_field form.distance addon_after="km" %}
+            <div class="row">
+                <div class="col-6">{% bootstrap_field form.freight_name %}</div>
+                <div class="col-6">{% bootstrap_field form.load_weight addon_after="kg" %}</div>
+            </div>
+        </div>
+        <div class ='card card-body'>
+            <h3 class="card-title">{% icon "compass" class='pb-2' height='100%'%} 위치정보</h3>
+            <div class="row">
+                <div class="col-6">
+                    <div id="map_div"></div>
+                </div>
+                <div class="col-6">
+                    {% bootstrap_field form.start_point %}
+                    {% bootstrap_field form.arrival_point %}
+                    {% bootstrap_field form.distance addon_after="km" %}
+                </div>
             </div>
         </div>
 
         <div class="mt-5 card card-body">
-            <div class="mt-lg-5 row">
+            <div class="pt-3 row ">
                 <h2 class="col-8 text-right">예상 금액</h2>
                 <h2 class="col-4 text-right"><span>0</span> 원</h2>
             </div>
