@@ -5,7 +5,7 @@ from extra_views import InlineFormSetFactory
 from apps.calculator.enums import TruckType
 from apps.calculator.models import TransportSection, ChargeCalculator, ChargeType
 
-
+# TODO: unique field 에대한 validation
 class TransportSectionForm(forms.ModelForm):
 
     class Meta:
@@ -63,8 +63,9 @@ class ChargeCalculatorForm(forms.ModelForm):
     distance = forms.IntegerField(
         label=ChargeCalculator.distance.field.verbose_name,
         help_text='T_MAP API 연동을 통해서 자동 계산되는 항목입니다',
-        disabled=True
-
+        widget=forms.NumberInput({
+            'readonly': True
+        })
     )
 
     class Meta:

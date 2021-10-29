@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 {% extends 'common/base.html' %}
-{% load bootstrap4 icon%}
-{% block page_name %}화물 등록{% endblock %}
+{% load bootstrap4 icon %}
+{% block page_name %}운송요금 계산{% endblock %}
 {% block content %}
-    <form action="{% url 'calculator:index' %}" method="post">
+    <form id='calculator_form' action="{% url 'calculator:index' %}" method="post">
         {% csrf_token %}
-        <div class ='card card-body mb-3'>
-            <h3 class="card-title">{% icon "grid" class='pb-2' height='100%'%} 화정보</h3>
+        <div class='card card-body mb-3'>
+            <h3 class="card-title pb-2 pt-2">{% icon "grid" class='pb-2' height='100%' %} 화물정보</h3>
             <div class="row">
                 <div class="col-6">{% bootstrap_field form.transport_section %}</div>
                 <div class="col-6">{% bootstrap_field form.truck %}</div>
@@ -16,15 +16,18 @@
                 <div class="col-6">{% bootstrap_field form.load_weight addon_after="kg" %}</div>
             </div>
         </div>
-        <div class ='card card-body'>
-            <h3 class="card-title">{% icon "compass" class='pb-2' height='100%'%} 위치정보</h3>
+        <div class='card card-body' style="height: 450px">
+            <h3 class="card-title pb-2 pt-2">{% icon "compass" class='pb-2' height='100%' %} 위치정보</h3>
             <div class="row">
                 <div class="col-6">
                     <div id="map_div"></div>
                 </div>
                 <div class="col-6">
-                    {% bootstrap_field form.start_point %}
-                    {% bootstrap_field form.arrival_point %}
+                    {% bootstrap_field form.start_point addon_after="검색"%}
+                    {% bootstrap_field form.arrival_point addon_after="검색"%}
+                    <div class="mb-3 text-right">
+                        <button type="button" id="search_route" class="btn btn-primary float">경로 탐색</button>
+                    </div>
                     {% bootstrap_field form.distance addon_after="km" %}
                 </div>
             </div>
@@ -32,12 +35,13 @@
 
         <div class="mt-5 card card-body">
             <div class="pt-3 row ">
-                <h2 class="col-8 text-right">예상 금액</h2>
-                <h2 class="col-4 text-right"><span>0</span> 원</h2>
+                <h2 class="col-8 text-right fw-bold">예상 금액</h2>
+                <h2 id="calculate_result" class="col-4 text-right fw-bold"><span>0</span> 원</h2>
             </div>
         </div>
+        <small class="form-text text-muted text-right">계산 된 금액은 참고용입니다. 실제금액은 현장상황에 따라 변동이 있을 수 있습니다.</small>
         <div class="btn-group-lg mt-5 text-right">
-            <button type="submit" id="save_btn" class="btn btn-danger rounded-pill mr-2">계산</button>
+            <button type="button" id="save_btn" class="btn btn-danger rounded-pill mr-2">계산</button>
         </div>
     </form>
 {% endblock %}
@@ -45,30 +49,470 @@
 {% block extra_script %}
     <script src="https://apis.openapi.sk.com/tmap/jsv2?version=1&appKey=l7xxe69bc783e3f542c7a43652ee9bd569e0"></script>
     <script>
-        CHARGE_TYPE = {% autoescape off %}{{ chargeType }}{% endautoescape %}
+        unq_tmak = 'l7xxe69bc783e3f542c7a43652ee9bd569e0'
+        map = null
+        var new_polyLine = [];
+        var new_Click_polyLine = [];
+        var markers = {};
+        var popups = {};
+        var pointArray = [];
+
             $(function () {
+                const $search_text = $('#id_start_point, #id_arrival_point')
+                const $search_btn = $search_text.next('div')
+                const $search_route_btn = $('#search_route')
+                init_map();
+
+                $search_btn.attr('style','cursor: pointer;').click(function(){
+                    let search_text = $(this).prev().val()
+                    let type = $(this).prev().attr('name')
+                    search_address(search_text, type)
+                });
+                $search_route_btn.click(function () {
+                    //TODO: 로딩창 삽입
+                    search_route()
+                })
+
+                $('#save_btn').click(function () {
+                    let form_data = {
+                        transport_section: $('#id_transport_section').val(),
+                        truck: $('#id_truck').val(),
+                        freight_name: $('#id_freight_name').val(),
+                        load_weight: $('#id_load_weight').val().replace(/,/g, ''),
+                        start_point: $('#id_start_point').val(),
+                        arrival_point: $('#id_arrival_point').val(),
+                        distance: $('#id_distance').val().replace(/,/g, '')
+                    }
+                    $.post('/api/calculators/',form_data, function (result) {
+                        $('#calculate_result').text(result)
+                    }).fail(function(error) {
+                        console.log(error)
+                        alert('모든 필드에 올바른 값을 입력해 주세요.');
+                    })
+                });
 
                 $('input[type=number]').attr('type', 'text').inputmask("numeric", {
                     autoGroup: true,
                     groupSeparator: ",",
-                    digits: 0,
+                    digits: 1,
                     allowMinus: false,
                     repeat: 12,
                     rightAlign: false,
                     removeMaskOnSubmit: true
                 }).next('div').find('span').css('background-color', '#e9ecef')
+            });
 
-                initTmap();
-            })
 
-        function initTmap() {
-            var map = new Tmapv2.Map("map_div",
+        function init_map() {
+            map = new Tmapv2.Map("map_div",
                 {
                     center: new Tmapv2.LatLng(37.566481622437934, 126.98502302169841), // 지도 초기 좌표
                     width: "100%",
-                    height: "100%",
-                    zoom: 15
+                    height: "350px",
+                    zoom: 14,
+                    zoomControl: true,
+                    scrollwheel: true
                 });
+            markers['start_point'] = new Tmapv2.Marker(
+                {
+                    iconSize: new Tmapv2.Size(24, 38),
+                    map: map
+                });
+            markers['arrival_point'] = new Tmapv2.Marker(
+                {
+                    iconSize: new Tmapv2.Size(24, 38),
+                    map: map
+                });
+        }
+        function drawData(data) {
+            // 지도위에 선은 다 지우기
+            if (new_polyLine.length > 0) {
+                for (var i = 0; i < new_polyLine.length; i++) {
+                    new_polyLine[i].setMap(null);
+                }
+            }
+            new_polyLine = [];
+            routeData = data;
+            var resultStr = "";
+            var distance = 0;
+            var idx = 1;
+            var newData = [];
+            var equalData = [];
+            var pointId1 = "-1234567";
+            var ar_line = [];
+
+            for (var i = 0; i < data.features.length; i++) {
+                var feature = data.features[i];
+                //배열에 경로 좌표 저잘
+                if (feature.geometry.type === "LineString") {
+                    ar_line = [];
+                    for (var j = 0; j < feature.geometry.coordinates.length; j++) {
+                        var startPt = new Tmapv2.LatLng(feature.geometry.coordinates[j][1], feature.geometry.coordinates[j][0]);
+                        ar_line.push(startPt);
+                        pointArray.push(feature.geometry.coordinates[j]);
+                    }
+                    var polyline = new Tmapv2.Polyline({
+                        path: ar_line,
+                        strokeColor: "#ff0000",
+                        strokeWeight: 6,
+                        map: map
+                    });
+                    new_polyLine.push(polyline);
+                }
+                var pointId2 = feature.properties.viaPointId;
+                if (pointId1 != pointId2) {
+                    equalData = [];
+                    equalData.push(feature);
+                    newData.push(equalData);
+                    pointId1 = pointId2;
+                } else {
+                    equalData.push(feature);
+                }
+            }
+            geoData = newData;
+            var markerCnt = 1;
+            for (var i = 0; i < newData.length; i++) {
+                var mData = newData[i];
+                var type = mData[0].geometry.type;
+                var pointType = mData[0].properties.pointType;
+                var pointTypeCheck = false; // 경유지 일때만 true
+                if (mData[0].properties.pointType == "S") {
+                    var img = 'http://tmapapi.sktelecom.com/upload/tmap/marker/pin_r_m_s.png';
+                    var lon = mData[0].geometry.coordinates[0];
+                    var lat = mData[0].geometry.coordinates[1];
+                } else if (mData[0].properties.pointType == "E") {
+                    var img = 'http://tmapapi.sktelecom.com/upload/tmap/marker/pin_r_m_e.png';
+                    var lon = mData[0].geometry.coordinates[0];
+                    var lat = mData[0].geometry.coordinates[1];
+                } else {
+                    markerCnt = i;
+                    var lon = mData[0].geometry.coordinates[0];
+                    var lat = mData[0].geometry.coordinates[1];
+                }
+            }
+        }
+        function addMarker(x, y, type) {
+            let marker = markers[type]
+            marker.setMap(null);
+
+            let icon_type= {
+                start_point: "http://tmapapi.sktelecom.com/upload/tmap/marker/pin_r_m_s.png",
+                arrival_point: "http://tmapapi.sktelecom.com/upload/tmap/marker/pin_r_m_e.png"
+            }
+            let markerPosition = new Tmapv2.LatLng(y, x)
+            marker = new Tmapv2.Marker(
+                {
+                    position: markerPosition,
+                    icon: icon_type[type],
+                    iconSize: new Tmapv2.Size(24, 38),
+                    map: map
+                });
+            map.setCenter(markerPosition);
+            marker.x = x
+            marker.y = y
+
+            markers[type] = marker
+            return marker
+        }
+        function search_route() {
+            var startX = markers['start_point'].x;
+            var startY = markers['start_point'].y;
+            var endX = markers['arrival_point'].x;
+            var endY = markers['arrival_point'].y;
+            var success_result;
+            var headers = {};
+            headers["appKey"] = unq_tmak;
+            $.ajax({
+                method: "POST",
+                headers: headers,
+                url : "https://apis.openapi.sk.com/tmap/truck/routes?version=1&format=json&callback=result",//
+                async: false,
+                data: {
+                    startX: startX,
+                    startY: startY,
+                    endX: endX,
+                    endY: endY,
+                    reqCoordType: "WGS84GEO",
+                    resCoordType: "WGS84GEO",
+                    angle: "172",
+                    searchOption: "0",
+                    trafficInfo: "Y",
+                    "truckType" : "1",
+                    "truckWidth": "100",
+                    "truckHeight": "100",
+                    "truckWeight": "35000",
+                    "truckTotalWeight": "35000",
+                    "truckLength": "200"
+                },
+                //TODO: 트럭정보 반영
+                success: function (response) {
+                    success_result = response;
+                    drawData(success_result);
+
+
+                    // 6. 경로탐색 결과 반경만큼 지도 레벨 조정
+                    var newData = geoData[0];
+                    PTbounds = new Tmapv2.LatLngBounds();
+                    for (var i = 0; i < newData.length; i++) {
+                        var mData = newData[i];
+                        var type = mData.geometry.type;
+                        var pointType = mData.properties.pointType;
+                        if (type == "Point") {
+                            var linePt = new Tmapv2.LatLng(mData.geometry.coordinates[1], mData.geometry.coordinates[0]);
+                            PTbounds.extend(linePt);
+                        } else {
+                            var startPt, endPt;
+                            for (var j = 0; j < mData.geometry.coordinates.length; j++) {
+                                var linePt = new Tmapv2.LatLng(mData.geometry.coordinates[j][1], mData.geometry.coordinates[j][0]);
+                                PTbounds.extend(linePt);
+                            }
+                        }
+                    }
+                    map.fitBounds(PTbounds);
+
+                    let features = success_result.features
+                    let distance = (features[0].properties.totalDistance / 1000).toFixed(1)
+                   var tTime = " 총 시간 : "
+                        + (features[0].properties.totalTime / 60)
+                            .toFixed(0)
+                        + "분,";
+                    var tFare = " 총 요금 : "
+                        + features[0].properties.totalFare
+                        + "원,";
+                    $('#id_distance').val(distance)
+
+                },
+                error: function (request, status, error) {
+                    console.log("code:" + request.status + "\n" + "message:" + request.responseText + "\n" + "error:" + error);
+                },
+
+            });
+        }
+        function search_address(fullAddr, type){
+            let marker = markers[type]
+
+            // 2. API 사용요청
+            $.ajax({
+                method : "GET",
+                url : "https://apis.openapi.sk.com/tmap/geo/fullAddrGeo?version=1&format=json&callback=result",
+                async : false,
+                data : {
+                    "appKey" : unq_tmak,
+                    "coordType" : "WGS84GEO",
+                    "fullAddr" : fullAddr
+                },
+                success : function(response) {
+                    var resultInfo = response.coordinateInfo; // .coordinate[0];
+
+                    // 검색 결과 정보가 없을 때 처리
+                    if (resultInfo.coordinate.length == 0) {
+                        $("#result").text(
+                        "요청 데이터가 올바르지 않습니다.");
+                    } else {
+                        var x, y;
+                        var resultCoordinate = resultInfo.coordinate[0];
+                        if (resultCoordinate.lon.length > 0) {
+                            // 구주소
+                            x = resultCoordinate.lon;
+                            y = resultCoordinate.lat;
+                        } else {
+                            // 신주소
+                            x = resultCoordinate.newLon;
+                            y = resultCoordinate.newLat
+                        }
+
+                        var lonEntr, latEntr;
+
+                        if (resultCoordinate.lonEntr == undefined && resultCoordinate.newLonEntr == undefined) {
+                            lonEntr = 0;
+                            latEntr = 0;
+                        } else {
+                            if (resultCoordinate.lonEntr.length > 0) {
+                                lonEntr = resultCoordinate.lonEntr;
+                                latEntr = resultCoordinate.latEntr;
+                            } else {
+                                lonEntr = resultCoordinate.newLonEntr;
+                                latEntr = resultCoordinate.newLatEntr;
+                            }
+                        }
+
+                        addMarker(Number(x), Number(y), type);
+
+                        // 검색 결과 표출
+                        var matchFlag, newMatchFlag;
+                        // 검색 결과 주소를 담을 변수
+                        var address = '', newAddress = '';
+                        var city, gu_gun, eup_myun, legalDong, adminDong, ri, bunji;
+                        var buildingName, buildingDong, newRoadName, newBuildingIndex, newBuildingName, newBuildingDong;
+
+                        // 새주소일 때 검색 결과 표출
+                        // 새주소인 경우 matchFlag가 아닌
+                        // newMatchFlag가 응답값으로
+                        // 온다
+                        if (resultCoordinate.newMatchFlag.length > 0) {
+                            // 새(도로명) 주소 좌표 매칭
+                            // 구분 코드
+                            newMatchFlag = resultCoordinate.newMatchFlag;
+
+                            // 시/도 명칭
+                            if (resultCoordinate.city_do.length > 0) {
+                                city = resultCoordinate.city_do;
+                                newAddress += city + "\n";
+                            }
+
+                            // 군/구 명칭
+                            if (resultCoordinate.gu_gun.length > 0) {
+                                gu_gun = resultCoordinate.gu_gun;
+                                newAddress += gu_gun + "\n";
+                            }
+
+                            // 읍면동 명칭
+                            if (resultCoordinate.eup_myun.length > 0) {
+                                eup_myun = resultCoordinate.eup_myun;
+                                newAddress += eup_myun + "\n";
+                            } else {
+                                // 출력 좌표에 해당하는
+                                // 법정동 명칭
+                                if (resultCoordinate.legalDong.length > 0) {
+                                    legalDong = resultCoordinate.legalDong;
+                                    newAddress += legalDong + "\n";
+                                }
+                                // 출력 좌표에 해당하는
+                                // 행정동 명칭
+                                if (resultCoordinate.adminDong.length > 0) {
+                                    adminDong = resultCoordinate.adminDong;
+                                    newAddress += adminDong + "\n";
+                                }
+                            }
+                            // 출력 좌표에 해당하는 리 명칭
+                            if (resultCoordinate.ri.length > 0) {
+                                ri = resultCoordinate.ri;
+                                newAddress += ri + "\n";
+                            }
+                            // 출력 좌표에 해당하는 지번 명칭
+                            if (resultCoordinate.bunji.length > 0) {
+                                bunji = resultCoordinate.bunji;
+                                newAddress += bunji + "\n";
+                            }
+                            // 새(도로명)주소 매칭을 한
+                            // 경우, 길 이름을 반환
+                            if (resultCoordinate.newRoadName.length > 0) {
+                                newRoadName = resultCoordinate.newRoadName;
+                                newAddress += newRoadName + "\n";
+                            }
+                            // 새(도로명)주소 매칭을 한
+                            // 경우, 건물 번호를 반환
+                            if (resultCoordinate.newBuildingIndex.length > 0) {
+                                newBuildingIndex = resultCoordinate.newBuildingIndex;
+                                newAddress += newBuildingIndex + "\n";
+                            }
+                            // 새(도로명)주소 매칭을 한
+                            // 경우, 건물 이름를 반환
+                            if (resultCoordinate.newBuildingName.length > 0) {
+                                newBuildingName = resultCoordinate.newBuildingName;
+                                newAddress += newBuildingName + "\n";
+                            }
+                            // 새주소 건물을 매칭한 경우
+                            // 새주소 건물 동을 반환
+                            if (resultCoordinate.newBuildingDong.length > 0) {
+                                newBuildingDong = resultCoordinate.newBuildingDong;
+                                newAddress += newBuildingDong + "\n";
+                            }
+                            // 검색 결과 표출
+                            let text = "검색결과(새주소) : " + newAddress ;
+                            $("#result").html(text);
+                        }
+
+                        // 구주소일 때 검색 결과 표출
+                        // 구주소인 경우 newMatchFlag가
+                        // 아닌 MatchFlag가 응닶값으로
+                        // 온다
+                        if (resultCoordinate.matchFlag.length > 0) {
+                            // 매칭 구분 코드
+                            matchFlag = resultCoordinate.matchFlag;
+
+                            // 시/도 명칭
+                            if (resultCoordinate.city_do.length > 0) {
+                                city = resultCoordinate.city_do;
+                                address += city + "\n";
+                            }
+                            // 군/구 명칭
+                            if (resultCoordinate.gu_gun.length > 0) {
+                                gu_gun = resultCoordinate.gu_gun;
+                                address += gu_gun+ "\n";
+                            }
+                            // 읍면동 명칭
+                            if (resultCoordinate.eup_myun.length > 0) {
+                                eup_myun = resultCoordinate.eup_myun;
+                                address += eup_myun + "\n";
+                            }
+                            // 출력 좌표에 해당하는 법정동
+                            // 명칭
+                            if (resultCoordinate.legalDong.length > 0) {
+                                legalDong = resultCoordinate.legalDong;
+                                address += legalDong + "\n";
+                            }
+                            // 출력 좌표에 해당하는 행정동
+                            // 명칭
+                            if (resultCoordinate.adminDong.length > 0) {
+                                adminDong = resultCoordinate.adminDong;
+                                address += adminDong + "\n";
+                            }
+                            // 출력 좌표에 해당하는 리 명칭
+                            if (resultCoordinate.ri.length > 0) {
+                                ri = resultCoordinate.ri;
+                                address += ri + "\n";
+                            }
+                            // 출력 좌표에 해당하는 지번 명칭
+                            if (resultCoordinate.bunji.length > 0) {
+                                bunji = resultCoordinate.bunji;
+                                address += bunji + "\n";
+                            }
+                            // 출력 좌표에 해당하는 건물 이름
+                            // 명칭
+                            if (resultCoordinate.buildingName.length > 0) {
+                                buildingName = resultCoordinate.buildingName;
+                                address += buildingName + "\n";
+                            }
+                            // 출력 좌표에 해당하는 건물 동을
+                            // 명칭
+                            if (resultCoordinate.buildingDong.length > 0) {
+                                buildingDong = resultCoordinate.buildingDong;
+                                address += buildingDong + "\n";
+                            }
+                            // 검색 결과 표출
+
+                            var content = "<div class='m-pop' style='position: static; top: 180px; left : 320px; display: flex; font-size: 10px; box-shadow: 5px 5px 5px #00000040; border-radius: 10px; width : 200px; height:auto; background-color: #FFFFFF; align-items: center; padding: 5px;'>"+
+                                        "검색결과: "+ address+
+                                        "</div>"
+                            $('#id_'+type).val(address)
+                            //Popup 객체 생성.
+                            popups[type] && popups[type].setMap(null)
+                            popups[type] = new Tmapv2.InfoWindow({
+                                position: new Tmapv2.LatLng(y, x), //Popup 이 표출될 맵 좌표
+                                content: content, //Popup 표시될 text
+                                type: 2, //Popup의 type 설정.
+                                map: map //Popup이 표시될 맵 객체
+                            });
+                        }
+                    }
+                },
+                error : function(request, status, error) {
+                    console.log(request);
+                    console.log("code:"+request.status + "\n message:" + request.responseText +"\n error:" + error);
+                    // 에러가 발생하면 맵을 초기화함
+                    // markerStartLayer.clearMarkers();
+                    // 마커초기화
+                    map.setCenter(new Tmapv2.LatLng(37.570028, 126.986072));
+                    alert("주소를 정확히 입력해 주세요!")
+                    $('#id_'+type).focus()
+                }
+            });
         }
     </script>
 {% endblock %}
+
+
+
+
+

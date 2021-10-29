@@ -2,13 +2,14 @@
 from django.db import models
 
 from apps.calculator.enums import TruckType
+from apps.calculator.queryset import ChargeTypeQuerySet
 
 
 class TransportSection(models.Model):
 
     class Meta:
         verbose_name = '이동구간'
-        verbose_name_plural = '이동구간'
+        unique_together = [['start_area', 'arrival_area']]
 
     start_area = models.CharField('출발 지역', max_length=100)
     arrival_area = models.CharField('도착 지역', max_length=100)
@@ -31,6 +32,9 @@ class ChargeType(models.Model):
 
     class Meta:
         verbose_name = '요금산정 방식'
+        unique_together = [['section', 'truck']]
+
+    objects = ChargeTypeQuerySet.as_manager()
 
     section = models.ForeignKey(TransportSection, verbose_name='화물', on_delete=models.CASCADE, related_name='charge_types')
     truck = models.CharField('화물차종', choices=TruckType.choices, max_length=20)
@@ -41,12 +45,12 @@ class ChargeType(models.Model):
 
 class ChargeCalculator(models.Model):
 
-    chargeType = models.ForeignKey(ChargeType, verbose_name='요금산정 방식', on_delete=models.CASCADE)
+    charge_type = models.ForeignKey(ChargeType, verbose_name='요금산정 방식', on_delete=models.CASCADE)
     freight_name = models.CharField('화물명', max_length=128)
     load_weight = models.IntegerField('적재중량')
     start_point = models.CharField('출발지', max_length=128)
     arrival_point = models.CharField('도착지', max_length=128)
-    distance = models.IntegerField('거리')
+    distance = models.FloatField('거리')
     cost = models.IntegerField('운송비용')
     create_dt = models.DateTimeField('생성일', auto_now_add=True)
     update_dt = models.DateTimeField('수정일', auto_now=True)

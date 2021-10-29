@@ -21,7 +21,8 @@ urlpatterns = [
 ]
 
 custom_urlpatterns = [
-    path('calculator/', include('apps.calculator.urls'))
+    path('api/', include('api.urls')),
+    path('calculator/', include('apps.calculator.urls')),
 ]
 
 urlpatterns += custom_urlpatterns

@@ -25,24 +25,24 @@ class CustomEnum(Enum, metaclass=CustomEnumMeta):
 
 
 class TruckType(CustomEnum):
-    ONE_TONE = ('1톤', 1500, 2800, 800, 1000)
-    ONE_HALF_TONE = ('1.4톤', 1550, 3100, 800, 1500)
-    TWO_HALF_TONE = ('2.5톤', 1900, 4300, 1030, 25000)
-    THREE_HALF_TONE = ('3.5톤', 2090, 4500, 1050, 3500)
-    FIVE_TONE = ('5톤', 2280, 6250, 1100, 5000)
-    FIVE_TONE_PLUS = ('5톤 플러스', 2300, 7250, 1200, 5000)
-    SIX_HALF_TONE = ('6.5톤', 2350, 7400, 1200, 6500)
-    ELEVEN_TONE = ('11톤', 2350, 9100, 1400, 11000)
-    FOURTEEN_TONE = ('14톤', 2350, 9300, 1400, 14000)
-    EIGHTEEN_TONE = ('18톤', 2350, 10100, 1400, 18000)
-    TWENTY_FIVE_TONE = ('25톤', 2350, 10100, 1400, 25000)
-    TRAILER = ('트레일러', 2500, 12000, 1600, 30000)
-    LOW_BED_TRAILER = ('로베드', 2500, 5600, 800, 30000)
+    ONE_TONE = ('1톤', 1500, 2800, 800, 1000, 0.9)
+    ONE_HALF_TONE = ('1.4톤', 1550, 3100, 800, 1500, 0.9)
+    TWO_HALF_TONE = ('2.5톤', 1900, 4300, 1030, 25000, 0.9)
+    THREE_HALF_TONE = ('3.5톤', 2090, 4500, 1050, 3500, 0.9)
+    FIVE_TONE = ('5톤', 2280, 6250, 1100, 5000, 0.9)
+    FIVE_TONE_PLUS = ('5톤 플러스', 2300, 7250, 1200, 5000, 0.9)
+    SIX_HALF_TONE = ('6.5톤', 2350, 7400, 1200, 6500, 0.95)
+    ELEVEN_TONE = ('11톤', 2350, 9100, 1400, 11000, 0.95)
+    FOURTEEN_TONE = ('14톤', 2350, 9300, 1400, 14000, 0.95)
+    EIGHTEEN_TONE = ('18톤', 2350, 10100, 1400, 18000, 0.95)
+    TWENTY_FIVE_TONE = ('25톤', 2350, 10100, 1400, 25000, 0.95)
+    TRAILER = ('트레일러', 2500, 12000, 1600, 30000, 0.95)
+    LOW_BED_TRAILER = ('로베드', 2500, 5600, 800, 30000, 0.95)
 
-    def __init__(self, kr_name, width, length, height, loadable_weight):
+    def __init__(self, kr_name, width, length, height, loadable_weight, less_load_discount):
         self.kr_name = kr_name
         self.width = width
         self.length = length
         self.height = height
         self.loadable_weight = loadable_weight
-
+        self.less_load_discount = less_load_discount

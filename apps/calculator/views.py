@@ -14,14 +14,14 @@ class CalculatorFV(CreateView):
     success_url = reverse_lazy('calculator:index')
     form_class = ChargeCalculatorForm
 
-    def get_context_dataㄴ(self, **kwargs):
+    def get_context_data(self, **kwargs):
         context_data = super().get_context_data(**kwargs)
         context_data['truckType'] = TruckType.to_dict()
         return context_data
 
     def form_invalid(self, form):
-        form['chargeType'] = ChargeType.objects.filter(transport_section_id=form.transport_section,
-                                                       truck=form.truck).first().id
+        form['charge_type'] = ChargeType.objects.filter(transport_section_id=form.transport_section,
+                                                        truck=form.truck).first().id
         return super().form_invalid(form)
 
 

@@ -38,11 +38,13 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.humanize',
+    'rest_framework',
     'extra_views',
     'mathfilters',
     'bootstrap4',
     'django_feather',
-    'apps.calculator.apps.CalculatorConfig'
+    'apps.calculator.apps.CalculatorConfig',
+    'api.apps.ApiConfig',
 ]
 
 
