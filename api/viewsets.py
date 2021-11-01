@@ -19,9 +19,11 @@ class ChargeCalculatorViewSet(viewsets.ModelViewSet):
         load_weight = data['load_weight']
         loadable_weight = truck.loadable_weight
         load_ratio = (float(load_weight)/loadable_weight) * 100
-        cost = charge_type.per_km_cost * float(data['distance'])
+        real_distance = float(data['distance']) + charge_type.section.extra_distance
+        cost = charge_type.per_km_cost * real_distance
         if load_ratio <= 40:
             cost = cost * truck.less_load_discount
+        data['distance'] = real_distance
         data['cost'] = int(cost)
         data['charge_type'] = charge_type.id
 
