@@ -36,6 +36,7 @@ class ChargeTypeForm(forms.ModelForm):
         fields = [
             "truck",
             "per_km_cost",
+            "id"
         ]
 
 
@@ -45,9 +46,6 @@ class ChargeTypeInline(InlineFormSetFactory):
     prefix = 'chargeType'
     initial = [{'truck': truck.name} for truck in TruckType]
     factory_kwargs = {'min_num': len(TruckType), 'max_num': len(TruckType), 'can_delete_extra': False}
-
-
-ChargeTypeFormSet = inlineformset_factory(TransportSection, ChargeType, form=ChargeTypeForm, extra=len(TruckType), max_num=len(TruckType), can_delete_extra=False)
 
 
 class ChargeCalculatorForm(forms.ModelForm):

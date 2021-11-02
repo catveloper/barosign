@@ -5,7 +5,7 @@ from django.views.generic import ListView, CreateView, UpdateView
 from extra_views import CreateWithInlinesView, NamedFormsetsMixin, UpdateWithInlinesView
 
 from apps.calculator.enums import TruckType
-from apps.calculator.forms import TransportSectionForm, ChargeCalculatorForm, ChargeTypeInline, ChargeTypeFormSet
+from apps.calculator.forms import TransportSectionForm, ChargeCalculatorForm, ChargeTypeInline
 from apps.calculator.models import TransportSection, ChargeType
 
 
