@@ -2,8 +2,8 @@
 {% extends 'common/base.html' %}
 {% load bootstrap4 %}
 {% load mathfilters %}
-{% block title %}바로사인 - 화물 등록{% endblock %}
-{% block page_name %}화물 등록{% endblock %}
+{% block title %}바로사인 - 이동구간 등록{% endblock %}
+{% block page_name %}이동구간 등록{% endblock %}
 {% block content %}
     {% if object %}
         <form id="section_form" action="{% url 'calculator:transport_section_uv' object.id %}" method="post">

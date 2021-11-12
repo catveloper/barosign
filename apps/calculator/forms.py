@@ -5,6 +5,7 @@ from extra_views import InlineFormSetFactory
 from apps.calculator.enums import TruckType
 from apps.calculator.models import TransportSection, ChargeCalculator, ChargeType
 
+
 # TODO: unique field 에대한 validation
 class TransportSectionForm(forms.ModelForm):
 
@@ -64,6 +65,14 @@ class ChargeCalculatorForm(forms.ModelForm):
         widget=forms.NumberInput({
             'readonly': True
         })
+    )
+    start_point = forms.CharField(
+        label=ChargeCalculator.start_point.field.verbose_name,
+        widget=forms.TextInput(attrs={'placeholder': '시/군/구를 포함한 주소를 입력해 주세요'}),
+    )
+    arrival_point = forms.CharField(
+        label=ChargeCalculator.arrival_point.field.verbose_name,
+        widget=forms.TextInput(attrs={'placeholder': '시/군/구를 포함한 주소를 입력해 주세요'}),
     )
 
     class Meta:
