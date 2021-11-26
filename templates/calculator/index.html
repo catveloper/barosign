@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 {% extends 'common/base.html' %}
 {% load bootstrap4 icon %}
+{% block title %}바로사인 - 운송요금 계산{% endblock %}
 {% block page_name %}운송요금 계산{% endblock %}
 {% block content %}
-{#    날씨정보 회기여부 추가#}
     <form id='calculator_form' action="{% url 'calculator:index' %}" method="post">
         {% csrf_token %}
         <div class='card card-body mb-3' style="height: 450px">
@@ -40,7 +40,7 @@
             </div>
             <div class="row">
                 <small class="col-8 text-right form-text text-muted">우천시 20% 증액</small>
-                <small class="col-4 text-right form-text text-muted">+ 20,000원</small>
+                <small id="rainyDayExtra" class="col-4 text-right form-text text-muted">+ 0원</small>
             </div>
         </div>
         <small class="form-text text-muted text-right">계산 된 금액은 참고용입니다. 실제금액은 현장상황에 따라 변동이 있을 수 있습니다.</small>
@@ -72,7 +72,7 @@
 
                 $search_text.keyup(function(key){
                     if(key.code === 'Enter'){
-                        $(this).next('div').trigger('click')
+                         $(key.target).next('div').trigger('click')
                     }
                 })
 
@@ -99,6 +99,7 @@
                     }
                     $.post('/api/calculators/',form_data, function (result) {
                         $('#calculate_result').text(addComma(result))
+                        $('#rainyDayExtra').text("+ "+addComma(result*0.2))
                     }).fail(function(error) {
                         console.log(error)
                         alert('모든 필드에 올바른 값을 입력해 주세요.');
@@ -119,17 +120,13 @@
         function match_points(){
             const startPoint = $('#id_start_point').val();
             const endPoint = $('#id_arrival_point').val();
-            console.log(startPoint)
-            console.log(endPoint)
-
+            $('#id_transport_section').val('')
             $('#id_transport_section > option').each(function(idx,option){
                 let section = $(option).text();
                 if(section.includes('->')){
                     let startLocation = section.split('->')[0].trim();
                     let endLocation = section.split('->')[1].trim();
                     if(startPoint.includes(startLocation) && endPoint.includes(endLocation)){
-                        console.log(startLocation)
-                        console.log(endLocation)
                         $('#id_transport_section').val($(option).val());
                     }
                 }
@@ -326,215 +323,44 @@
 
             });
         }
-        function search_address(fullAddr, type){
-            let marker = markers[type]
-
-            // 2. API 사용요청
+        function search_address(searchKeyword, type){
+    // 2. API 사용요청
             $.ajax({
                 method : "GET",
-                url : "https://apis.openapi.sk.com/tmap/geo/fullAddrGeo?version=1&format=json&callback=result",
+                url : "https://apis.openapi.sk.com/tmap/pois?version=1&format=json&callback=result",
                 async : false,
                 data : {
                     "appKey" : unq_tmak,
                     "coordType" : "WGS84GEO",
-                    "fullAddr" : fullAddr
+                    "searchKeyword" : searchKeyword,
+                    "count" : 10
                 },
                 success : function(response) {
-                    var resultInfo = response.coordinateInfo; // .coordinate[0];
-
-                    // 검색 결과 정보가 없을 때 처리
-                    if (resultInfo.coordinate.length == 0) {
-                        $("#result").text(
-                        "요청 데이터가 올바르지 않습니다.");
+                    var poiData = response.searchPoiInfo.pois.poi[0];
+                    console.log(poiData)
+                    if (poiData.length === 0) {
+                        $("#result").text("요청 데이터가 올바르지 않습니다.");
                     } else {
-                        var x, y;
-                        var resultCoordinate = resultInfo.coordinate[0];
-                        if (resultCoordinate.lon.length > 0) {
-                            // 구주소
-                            x = resultCoordinate.lon;
-                            y = resultCoordinate.lat;
-                        } else {
-                            // 신주소
-                            x = resultCoordinate.newLon;
-                            y = resultCoordinate.newLat
-                        }
-
-                        var lonEntr, latEntr;
-
-                        if (resultCoordinate.lonEntr == undefined && resultCoordinate.newLonEntr == undefined) {
-                            lonEntr = 0;
-                            latEntr = 0;
-                        } else {
-                            if (resultCoordinate.lonEntr.length > 0) {
-                                lonEntr = resultCoordinate.lonEntr;
-                                latEntr = resultCoordinate.latEntr;
-                            } else {
-                                lonEntr = resultCoordinate.newLonEntr;
-                                latEntr = resultCoordinate.newLatEntr;
-                            }
-                        }
                         resetLines()
-                        addMarker(Number(x), Number(y), type);
+                        let x = Number(poiData.noorLon)
+                        let y = Number(poiData.noorLat)
+                        addMarker(x, y, type);
 
-                        // 검색 결과 표출
-                        var matchFlag, newMatchFlag;
-                        // 검색 결과 주소를 담을 변수
-                        var address = '', newAddress = '';
-                        var city, gu_gun, eup_myun, legalDong, adminDong, ri, bunji;
-                        var buildingName, buildingDong, newRoadName, newBuildingIndex, newBuildingName, newBuildingDong;
+                        let addressInfo = coordinatesToAddress(x,y)
+                        let address = addressInfo.newAddress
 
-                        // 새주소일 때 검색 결과 표출
-                        // 새주소인 경우 matchFlag가 아닌
-                        // newMatchFlag가 응답값으로
-                        // 온다
-                        if (resultCoordinate.newMatchFlag.length > 0) {
-                            // 새(도로명) 주소 좌표 매칭
-                            // 구분 코드
-                            newMatchFlag = resultCoordinate.newMatchFlag;
-
-                            // 시/도 명칭
-                            if (resultCoordinate.city_do.length > 0) {
-                                city = resultCoordinate.city_do;
-                                newAddress += city + "\n";
-                            }
-
-                            // 군/구 명칭
-                            if (resultCoordinate.gu_gun.length > 0) {
-                                gu_gun = resultCoordinate.gu_gun;
-                                newAddress += gu_gun + "\n";
-                            }
-
-                            // 읍면동 명칭
-                            if (resultCoordinate.eup_myun.length > 0) {
-                                eup_myun = resultCoordinate.eup_myun;
-                                newAddress += eup_myun + "\n";
-                            } else {
-                                // 출력 좌표에 해당하는
-                                // 법정동 명칭
-                                if (resultCoordinate.legalDong.length > 0) {
-                                    legalDong = resultCoordinate.legalDong;
-                                    newAddress += legalDong + "\n";
-                                }
-                                // 출력 좌표에 해당하는
-                                // 행정동 명칭
-                                if (resultCoordinate.adminDong.length > 0) {
-                                    adminDong = resultCoordinate.adminDong;
-                                    newAddress += adminDong + "\n";
-                                }
-                            }
-                            // 출력 좌표에 해당하는 리 명칭
-                            if (resultCoordinate.ri.length > 0) {
-                                ri = resultCoordinate.ri;
-                                newAddress += ri + "\n";
-                            }
-                            // 출력 좌표에 해당하는 지번 명칭
-                            if (resultCoordinate.bunji.length > 0) {
-                                bunji = resultCoordinate.bunji;
-                                newAddress += bunji + "\n";
-                            }
-                            // 새(도로명)주소 매칭을 한
-                            // 경우, 길 이름을 반환
-                            if (resultCoordinate.newRoadName.length > 0) {
-                                newRoadName = resultCoordinate.newRoadName;
-                                newAddress += newRoadName + "\n";
-                            }
-                            // 새(도로명)주소 매칭을 한
-                            // 경우, 건물 번호를 반환
-                            if (resultCoordinate.newBuildingIndex.length > 0) {
-                                newBuildingIndex = resultCoordinate.newBuildingIndex;
-                                newAddress += newBuildingIndex + "\n";
-                            }
-                            // 새(도로명)주소 매칭을 한
-                            // 경우, 건물 이름를 반환
-                            if (resultCoordinate.newBuildingName.length > 0) {
-                                newBuildingName = resultCoordinate.newBuildingName;
-                                newAddress += newBuildingName + "\n";
-                            }
-                            // 새주소 건물을 매칭한 경우
-                            // 새주소 건물 동을 반환
-                            if (resultCoordinate.newBuildingDong.length > 0) {
-                                newBuildingDong = resultCoordinate.newBuildingDong;
-                                newAddress += newBuildingDong + "\n";
-                            }
-                            // 검색 결과 표출
-                            let text = "검색결과(새주소) : " + newAddress ;
-                            $("#result").html(text);
-                        }
-
-                        // 구주소일 때 검색 결과 표출
-                        // 구주소인 경우 newMatchFlag가
-                        // 아닌 MatchFlag가 응닶값으로
-                        // 온다
-                        if (resultCoordinate.matchFlag.length > 0) {
-                            // 매칭 구분 코드
-                            matchFlag = resultCoordinate.matchFlag;
-
-                            // 시/도 명칭
-                            if (resultCoordinate.city_do.length > 0) {
-                                city = resultCoordinate.city_do;
-                                address += city + " ";
-                            }
-                            // 군/구 명칭
-                            if (resultCoordinate.gu_gun.length > 0) {
-                                gu_gun = resultCoordinate.gu_gun;
-                                address += gu_gun+ " ";
-                            }
-                            // 읍면동 명칭
-                            if (resultCoordinate.eup_myun.length > 0) {
-                                eup_myun = resultCoordinate.eup_myun;
-                                address += eup_myun + " ";
-                            }
-                            // 출력 좌표에 해당하는 법정동
-                            // 명칭
-                            if (resultCoordinate.legalDong.length > 0) {
-                                legalDong = resultCoordinate.legalDong;
-                                address += legalDong + " ";
-                            }
-                            // 출력 좌표에 해당하는 행정동
-                            // 명칭
-                            if (resultCoordinate.adminDong.length > 0) {
-                                adminDong = resultCoordinate.adminDong;
-                                address += adminDong + " ";
-                            }
-                            // 출력 좌표에 해당하는 리 명칭
-                            if (resultCoordinate.ri.length > 0) {
-                                ri = resultCoordinate.ri;
-                                address += ri + " ";
-                            }
-                            // 출력 좌표에 해당하는 지번 명칭
-                            if (resultCoordinate.bunji.length > 0) {
-                                bunji = resultCoordinate.bunji;
-                                address += bunji + " ";
-                            }
-                            // 출력 좌표에 해당하는 건물 이름
-                            // 명칭
-                            if (resultCoordinate.buildingName.length > 0) {
-                                buildingName = resultCoordinate.buildingName;
-                                address += buildingName + " ";
-                            }
-                            // 출력 좌표에 해당하는 건물 동을
-                            // 명칭
-                            if (resultCoordinate.buildingDong.length > 0) {
-                                buildingDong = resultCoordinate.buildingDong;
-                                address += buildingDong + " ";
-                            }
-                            // 검색 결과 표출
-
-                            var content = "<div class='m-pop' style='position: static; top: 180px; left : 320px; display: flex; font-size: 10px; box-shadow: 5px 5px 5px #00000040; border-radius: 10px; width : 200px; height:auto; background-color: #FFFFFF; align-items: center; padding: 5px;'>"+
-                                        "검색결과: "+ address+
-                                        "</div>"
-                            $('#id_'+type).val(address)
-                            $('#id_'+type).data('city',city)
-                            $('#id_'+type).data('gu_gun',gu_gun)
-                            //Popup 객체 생성.
-                            popups[type] && popups[type].setMap(null)
-                            popups[type] = new Tmapv2.InfoWindow({
-                                position: new Tmapv2.LatLng(y, x), //Popup 이 표출될 맵 좌표
-                                content: content, //Popup 표시될 text
-                                type: 2, //Popup의 type 설정.
-                                map: map //Popup이 표시될 맵 객체
-                            });
-                        }
+                        var content = "<div class='m-pop' style='position: static; top: 180px; left : 320px; display: flex; font-size: 10px; box-shadow: 5px 5px 5px #00000040; border-radius: 10px; width : 200px; height:auto; background-color: #FFFFFF; align-items: center; padding: 5px;'>"
+                                    +address+
+                                    "</div>"
+                        $('#id_'+type).val(address);
+                        //Popup 객체 생성.
+                        popups[type] && popups[type].setMap(null)
+                        popups[type] = new Tmapv2.InfoWindow({
+                            position: new Tmapv2.LatLng(y, x), //Popup 이 표출될 맵 좌표
+                            content: content, //Popup 표시될 text
+                            type: 2, //Popup의 type 설정.
+                            map: map //Popup이 표시될 맵 객체
+                        });
                     }
                 },
                 error : function(request, status, error) {
@@ -548,6 +374,82 @@
                     $('#id_'+type).focus()
                 }
             });
+        }
+
+        function coordinatesToAddress(lon, lat) {
+            var result
+            $.ajax({
+                method: "GET",
+                url: "https://apis.openapi.sk.com/tmap/geo/reversegeocoding?version=1&format=json&callback=result",
+                async: false,
+                data: {
+                    "appKey": unq_tmak,
+                    "coordType": "WGS84GEO",
+                    "addressType": "A10",
+                    "lon": lon,
+                    "lat": lat
+                },
+                success: function (response) {
+                    // 3. json에서 주소 파싱
+                    var arrResult = response.addressInfo;
+
+                    //법정동 마지막 문자
+                    var lastLegal = arrResult.legalDong
+                        .charAt(arrResult.legalDong.length - 1);
+
+                    // 새주소
+                    newRoadAddr = arrResult.city_do + ' '
+                        + arrResult.gu_gun + ' ';
+
+                    if (arrResult.eup_myun == ''
+                        && (lastLegal == "읍" || lastLegal == "면")) {//읍면
+                        newRoadAddr += arrResult.legalDong;
+                    } else {
+                        newRoadAddr += arrResult.eup_myun;
+                    }
+                    newRoadAddr += ' ' + arrResult.roadName + ' '
+                        + arrResult.buildingIndex;
+
+                    // 새주소 법정동& 건물명 체크
+                    if (arrResult.legalDong != ''
+                        && (lastLegal != "읍" && lastLegal != "면")) {//법정동과 읍면이 같은 경우
+
+                        if (arrResult.buildingName != '') {//빌딩명 존재하는 경우
+                            newRoadAddr += (' (' + arrResult.legalDong
+                                + ', ' + arrResult.buildingName + ') ');
+                        } else {
+                            newRoadAddr += (' (' + arrResult.legalDong + ')');
+                        }
+                    } else if (arrResult.buildingName != '') {//빌딩명만 존재하는 경우
+                        newRoadAddr += (' (' + arrResult.buildingName + ') ');
+                    }
+
+                    // 구주소
+                    jibunAddr = arrResult.city_do + ' '
+                        + arrResult.gu_gun + ' '
+                        + arrResult.legalDong + ' ' + arrResult.ri
+                        + ' ' + arrResult.bunji;
+                    //구주소 빌딩명 존재
+                    if (arrResult.buildingName != '') {//빌딩명만 존재하는 경우
+                        jibunAddr += (' ' + arrResult.buildingName);
+                    }
+
+                    result = {
+                        newAddress : newRoadAddr,
+                        oldAddress : jibunAddr,
+                        firstCategory : arrResult.city_do,
+                        secondCategory : arrResult.gu_gun,
+                    };
+
+
+                },
+                error: function (request, status, error) {
+                    console.log("code:" + request.status + "\n"
+                        + "message:" + request.responseText + "\n"
+                        + "error:" + error);
+                }
+            });
+            return result
         }
         function addComma(num) {
             var regexp = /\B(?=(\d{3})+(?!\d))/g;

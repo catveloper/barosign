@@ -40,6 +40,11 @@ class TransportSectionCV(NamedFormsetsMixin, CreateWithInlinesView):
     inlines = [ChargeTypeInline]
     inlines_names = ['charge_types']
 
+    def get_context_data(self, **kwargs):
+        context_data = super().get_context_data(**kwargs)
+        context_data['truck_type'] = TruckType.to_dict()
+        return context_data
+
 
 class TransportSectionUV(NamedFormsetsMixin, UpdateWithInlinesView):
     model = TransportSection
