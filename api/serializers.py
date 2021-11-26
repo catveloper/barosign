@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from apps.calculator.models import ChargeCalculator
+from apps.calculator.models import ChargeCalculator, TransportSection
 
 
 class ChargeCalculatorSerializer(serializers.ModelSerializer):
@@ -14,5 +14,13 @@ class ChargeCalculatorSerializer(serializers.ModelSerializer):
             "arrival_point",
             "distance",
             "cost",
+        ]
+
+
+class TransportSectionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TransportSection
+        fields = [
+            "is_use"
         ]
 

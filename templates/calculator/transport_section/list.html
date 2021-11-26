@@ -31,16 +31,16 @@
                         <th>출발지역</th>
                         <th>도착지역</th>
                         <th>추가 거리(회기)</th>
-                        <th>km당 평균 금액</th>
+                        <th>활성화 상태</th>
                     </tr>
                     </thead>
                     <tbody>
                     {% for object in object_list %}
-                        <tr class="page_link" data-url="{% url 'calculator:transport_section_uv' object.id%}">
-                            <td>{{ object.start_area }}</td>
-                            <td>{{ object.arrival_area }}</td>
-                            <td>{{ object.extra_distance }} km</td>
-                            <td>{{ object.charge_average }} 원</td>
+                        <tr>
+                            <td class="page_link" data-url="{% url 'calculator:transport_section_uv' object.id%}">{{ object.start_area }}</td>
+                            <td class="page_link" data-url="{% url 'calculator:transport_section_uv' object.id%}">{{ object.arrival_area }}</td>
+                            <td class="page_link" data-url="{% url 'calculator:transport_section_uv' object.id%}">{{ object.extra_distance }} km</td>
+                            <td><input name="is_use" data-id="{{ object.id }}" type="checkbox" data-toggle="toggle" data-size="small" data-onstyle="primary" data-style="ios" {% if object.is_use %} checked{% endif %}></td>
                         </tr>
                     {% empty %}
                         <tr>
@@ -54,4 +54,28 @@
         </div>
     </div>
 
+{% endblock %}
+
+{% block extra_script %}
+    <script>
+        $(function () {
+           $('input[name=is_use]').change(function (e) {
+                let form_data = {
+                    is_use: $(this).prop('checked')
+                }
+
+                $.ajax({
+                   url: '/api/transport-sections/'+ $(this).data('id') +'/',
+                   data: form_data,
+                   type: 'PATCH',
+                   success: function (result) {
+                   },
+                   error: function () {
+                        console.log(error)
+                        alert('상태 업데이트에 실패하였습니다');
+                   }
+                });
+            });
+        });
+    </script>
 {% endblock %}

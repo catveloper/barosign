@@ -19,17 +19,17 @@
             <div id="map_div"></div>
         </div>
         <div class="col-6">
-        {% bootstrap_field form.start_area addon_after="검색"%}
-        <small class="form-text text-muted" style="text-align: right; margin-top: -10px">
-            <label for="start_only_first_class">시/도 단위 표기</label>
-            <input type="checkbox" id="start_only_first_class"/>
-        </small>
-        {% bootstrap_field form.arrival_area addon_after="검색"%}
-        <small class="form-text text-muted mb-2" style="text-align: right; margin-top: -10px">
-            <label for="arrival_only_first_class">시/도 단위 표기</label>
-            <input type="checkbox" id="arrival_only_first_class"/>
-        </small>
-        {% bootstrap_field form.extra_distance addon_after="km"%}
+            {% bootstrap_field form.start_area addon_after="검색" %}
+            <small class="form-text text-muted" style="text-align: right; margin-top: -10px">
+                <label for="start_only_first_class">시/도 단위 표기</label>
+                <input type="checkbox" id="start_only_first_class"/>
+            </small>
+            {% bootstrap_field form.arrival_area addon_after="검색" %}
+            <small class="form-text text-muted" style="text-align: right; margin-top: -10px">
+                <label for="arrival_only_first_class">시/도 단위 표기</label>
+                <input type="checkbox" id="arrival_only_first_class"/>
+            </small>
+            {% bootstrap_field form.extra_distance addon_after="km" %}
         </div>
     </div>
 
@@ -72,7 +72,8 @@
 {% block extra_script %}
     <script src="https://apis.openapi.sk.com/tmap/jsv2?version=1&appKey=l7xxe69bc783e3f542c7a43652ee9bd569e0"></script>
     <script>
-        TRUCK_TYPE = {% autoescape off %}{{ truck_type }}{% endautoescape %};
+        TRUCK_TYPE = {% autoescape off %}{{ truck_type }}{% endautoescape %}
+        is_update = {{ pk }}? true : false;
         unq_tmak = 'l7xxe69bc783e3f542c7a43652ee9bd569e0'
         map = null
         var new_polyLine = [];
@@ -86,9 +87,16 @@
                 const $search_text = $('#id_start_area, #id_arrival_area')
                 const $only_first_class = $('#start_only_first_class, #arrival_only_first_class')
                 const $search_address_btn = $search_text.next('div')
-                const $search_route_btn = $('#search_route')
                 init_map();
 
+                if(is_update){
+                    $search_text.each(function(idx,input){
+                        $(input).attr('readonly',true).next('div').remove()
+                    })
+                    $only_first_class.each(function(idx,checkbox){
+                        $(checkbox).parent('small').remove()
+                    })
+                }
                 $search_text.keypress(function(key){
                     if(key.code === 'Enter'){
                         $(key.target).next('div').trigger('click')

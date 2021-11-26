@@ -1,12 +1,14 @@
 from rest_framework import viewsets, permissions, status
+from rest_framework.generics import UpdateAPIView
 from rest_framework.response import Response
+from rest_framework.viewsets import ModelViewSet
 
-from api.serializers import ChargeCalculatorSerializer
+from api.serializers import ChargeCalculatorSerializer, TransportSectionSerializer
 from apps.calculator.enums import TruckType
-from apps.calculator.models import ChargeCalculator, ChargeType
+from apps.calculator.models import ChargeCalculator, ChargeType, TransportSection
 
 
-class ChargeCalculatorViewSet(viewsets.ModelViewSet):
+class ChargeCalculatorViewSet(ModelViewSet):
     queryset = ChargeCalculator.objects.all()
     serializer_class = ChargeCalculatorSerializer
     permission_classes = [permissions.AllowAny]
@@ -32,3 +34,12 @@ class ChargeCalculatorViewSet(viewsets.ModelViewSet):
         self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data['cost'], status=status.HTTP_201_CREATED, headers=headers)
+
+
+class TransportSectionViewSet(UpdateAPIView):
+    queryset = TransportSection.objects.all()
+    serializer_class = TransportSectionSerializer
+    permission_classes = [permissions.AllowAny]
+
+    def patch(self, request, *args, **kwargs):
+        return super().patch(request, *args, **kwargs)
